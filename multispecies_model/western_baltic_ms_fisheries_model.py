@@ -1,44 +1,6 @@
 import numpy as np
 import pandas as pd
-import zipfile
-import xml.etree.ElementTree as ET
 
-
-def load_tables_from_dotx(dotx_path):
-    """
-    Load all tables from a .dotx (Word template) file and return a list of pandas DataFrames.
-    Handles two-row headers by merging them into single-level column names.
-    """
-    ns = {'w': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'}
-    with zipfile.ZipFile(dotx_path) as z:
-        doc_xml = z.read('word/document.xml')
-    root = ET.fromstring(doc_xml)
-    tbls = root.findall('.//w:tbl', ns)
-    dfs = []
-    for tbl in tbls:
-        rows = []
-        for tr in tbl.findall('.//w:tr', ns):
-            cells = []
-            for tc in tr.findall('.//w:tc', ns):
-                texts = [t.text for t in tc.findall('.//w:t', ns) if t.text]
-                cells.append(''.join(texts))
-            rows.append(cells)
-        if len(rows) < 2:
-            continue
-        header = []
-        r1, r2 = rows[0], rows[1]
-        for i, h1 in enumerate(r1):
-            h2 = r2[i] if i < len(r2) else ''
-            if h1 and h2:
-                header.append(f"{h1}_{h2}")
-            elif h1:
-                header.append(h1)
-            else:
-                header.append(h2)
-        data = rows[2:]
-        df = pd.DataFrame(data, columns=header)
-        dfs.append(df)
-    return dfs
 
 
 class Species:
@@ -143,11 +105,13 @@ if __name__=='__main__':
     tables=load_tables_from_dotx(doc)
     keys=['climate','growth','mortality','maturity','selectivity','recruitment','economics']
     pt=dict(zip(keys,tables))
+   
     # build climate
     cdf=pt['climate']; years=np.arange(2020,2081)
     row=cdf[cdf['Climate']=='RCP 4.5'].iloc[0]
     interp=np.interp(years,[2040,2080],[float(row['2040_MMSY']),float(row['2080_MMSY'])])
     climate=dict(zip(years,interp))
+    
     # init species & model
     h=Species('Herring',pt); c=Species('Cod',pt)
     model=FisheriesModel([h,c],years,climate)
