@@ -14,7 +14,8 @@ weights_catch_df = pd.read_csv("wb_weights_catch.csv", sep=";", index_col=0)
 mortal_df = pd.read_csv("wb_natmort.csv", sep=";", index_col=0)
 
 # Add age0 to catch and reorder to match other data
-catch_df.insert(0, 'age0', 0.0)
+if np.shape(catch_df)[1] != np.shape(mat_df)[1]:
+    catch_df.insert(0, 'age0', 0.0)
 
 # Align all datasets to common years
 common_years = sorted(set(catch_df.index) & set(mat_df.index) & set(weights_df.index) & set(mortal_df.index))
@@ -126,11 +127,11 @@ W_last = weights_df.iloc[-1].values
 Mat_last = mat_df.iloc[-1].values
 SSB[-1] = np.sum(N[-1] * W_last * Mat_last)
 
-# Final year catches
-M = mortal_df.iloc[-1].values
-for a in np.arange(start_age, n_ages):
-    Z = F_vec[a] + M[a]
-    Catch[-1, a] = (F_vec[a] / Z) * (1 - np.exp(-Z)) * N[-1, a]
+# # Final year catches
+# M = mortal_df.iloc[-1].values
+# for a in np.arange(start_age, n_ages):
+#     Z = F_vec[a] + M[a]
+#     Catch[-1, a] = (F_vec[a] / Z) * (1 - np.exp(-Z)) * N[-1, a]
 
 # ------------------------------
 # Plot Results
