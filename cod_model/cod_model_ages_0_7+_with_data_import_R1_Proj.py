@@ -13,6 +13,7 @@ weights_df = pd.read_csv("wb_weights.csv", sep=";", index_col=0)
 weights_catch_df = pd.read_csv("wb_weights_catch.csv", sep=";", index_col=0)
 mortal_df = pd.read_csv("wb_natmort.csv", sep=";", index_col=0)
 numbers_df = pd.read_csv("wb_numbers.csv", sep=";", index_col=0)
+fishmort_df = pd.read_csv("wb_fishmort.csv", sep=";", index_col=0)
 
 # Add age0 to catch and reorder to match other data
 if np.shape(catch_df)[1] != np.shape(mat_df)[1]:
@@ -27,6 +28,7 @@ weights_df = weights_df.loc[common_years]
 weights_catch_df = weights_catch_df.loc[common_years]
 mortal_df = mortal_df.loc[common_years]
 numbers_df = numbers_df.loc[common_years]
+fishmort_df = fishmort_df.loc[common_years]
 
 # ------------------------------
 # Set Model Parameters
@@ -36,17 +38,18 @@ n_years = 100
 age_labels = list(catch_df.columns)
 n_ages = len(age_labels)
 
-# Natural mortality, weight, maturity loaded per year
 # Fishing mortality: fixed at 0.207 for ages 3–5, 0.1 for others
-F_vec = np.full(n_ages, 0.1)
-F_vec[3:6] = 0.207
-F_vec[0] = 0
 
-F_vec[:] = 0
+# F_vec = np.full(n_ages, 0.1)
+# F_vec[3:6] = 0.207
+# F_vec[0] = 0
 
-# f_msy_bar = c(0.701, 0.882, 1.064) / mean(c(0.701, 0.882, 1.064)) * f_set
-# f_rel = 0.882 / c(0.054, 0.286, 0.701, 0.882, 1.064, 1.064, 1.064)
-# f_msy = c(f_msy_bar[2]/f_rel[c(1,2)], f_msy_bar, f_msy_bar[2]/f_rel[c(6,7)])
+# F_vec[:] = 0
+
+f_set = 0
+f_msy_bar = np.array(fishmort_df)[-1,3:6] / np.mean(np.array(fishmort_df)[-1,3:6]) * f_set
+f_rel = np.array(fishmort_df)[-1,4] / np.array(fishmort_df)[-1,:]
+F_vec = np.concatenate([np.reshape(0, [1,]), f_msy_bar[2]/f_rel[[1,2]], f_msy_bar, f_msy_bar[2]/f_rel[[6,7]]])
 
 # Beverton–Holt recruitment parameters (example values)
 recr = 'mean_last5'
@@ -147,7 +150,10 @@ plt.show()
 # Catch-in-weight plot
 total_catch = np.sum(Catch * np.array(weights_catch_df)[-1,:], axis = 1)
 
+catch_hist = np.sum(np.array(catch_df) * np.array(weights_catch_df), axis = 1)
+
 plt.figure(figsize=(10, 5))
+plt.plot(np.arange(1985,2021), catch_hist)
 plt.plot(2020+np.arange(0,n_years), total_catch, label="Simulated Total Catch in Tonnes", color='blue', marker='s')
 plt.title("Simulated Total Catch (tonnes)")
 plt.xlabel("Year")
