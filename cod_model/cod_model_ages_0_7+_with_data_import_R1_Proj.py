@@ -11,7 +11,7 @@ catch_df = pd.read_csv("wb_catch.csv", sep=";", index_col=0)
 mat_df = pd.read_csv("wb_mat.csv", sep=";", index_col=0)
 weights_df = pd.read_csv("wb_weights.csv", sep=";", index_col=0)
 weights_catch_df = pd.read_csv("wb_weights_catch.csv", sep=";", index_col=0)
-mortal_df = pd.read_csv("wb_natmort.csv", sep=";", index_col=0)
+mortal_df = pd.read_csv("wb_natmort_var.csv", sep=";", index_col=0)
 numbers_df = pd.read_csv("wb_numbers.csv", sep=";", index_col=0)
 fishmort_df = pd.read_csv("wb_fishmort.csv", sep=";", index_col=0)
 
@@ -74,7 +74,7 @@ Catch = np.zeros((n_years, n_ages))  # Catch at age
 N[0] = N0
 
 W = np.array(weights_df)[-1,:]
-Mat = np.array(mortal_df)[-1,:]
+Mat = np.array(mat_df)[-1,:]
 M = np.array(mortal_df)[-1,:]
 
 # ------------------------------
